@@ -20,7 +20,10 @@ namespace Bloggie.Web.Pages.Admin.Blogs
         [BindProperty]
         public BlogPost BlogPost { get; set; }
 
-        public async Task OnGet(Guid id)
+		[BindProperty]
+		public IFormFile FeaturedImage { get; set; }
+
+		public async Task OnGet(Guid id)
         {
             BlogPost = await repository.GetByIdAsync(id);
         }
