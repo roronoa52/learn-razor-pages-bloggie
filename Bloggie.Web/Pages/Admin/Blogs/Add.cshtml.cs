@@ -24,6 +24,9 @@ namespace Bloggie.Web.Pages.Admin.Blogs
         [BindProperty]
         public IFormFile FeaturedImage { get; set; }
 
+        [BindProperty]
+        public string Tags { get; set; }
+
         public void OnGet()
         {
         }
@@ -40,6 +43,7 @@ namespace Bloggie.Web.Pages.Admin.Blogs
                 PublishedDate = AddBlogPostRequest.PublishedDate,
                 Author = AddBlogPostRequest.Author,
                 Visible = AddBlogPostRequest.Visible,
+                Tags = new List<Tag>( Tags.Split(",").Select(t => new Tag { Name = t.Trim()}) ),
             };
 
             await repository.CreateAsync(blogPost);

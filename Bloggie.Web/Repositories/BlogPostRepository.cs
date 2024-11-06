@@ -38,17 +38,29 @@ namespace Bloggie.Web.Repositories
 
         public async Task<IEnumerable<BlogPost>> GetAllAsync()
         {
-            return await db.BlogPosts.ToListAsync();
+            return await db.BlogPosts.Include(nameof(BlogPost.Tags)).ToListAsync();
         }
 
-        public async Task<BlogPost> GetByIdAsync(Guid id)
+		public async Task<IEnumerable<BlogPost>> GetAllAsync(string TagName)
+		{
+            return await (db.BlogPosts.Include(nameof(BlogPost.Tags))
+                .Where(x => x.Tags.Any(x => x.Name == TagName)))
+                .ToListAsync();
+		}
+
+		public async Task<BlogPost> GetByIdAsync(Guid id)
         {
-            return await db.BlogPosts.FindAsync(id);
+            return await db.BlogPosts.Include(nameof(BlogPost.Tags)).FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<BlogPost> UpdateAsync(BlogPost blogPost)
+		public async Task<BlogPost> GetPostAsync(string urlHandle)
+		{
+			return await db.BlogPosts.Include(nameof(BlogPost.Tags)).FirstOrDefaultAsync(x => x.UrlHandle == urlHandle);
+		}
+
+		public async Task<BlogPost> UpdateAsync(BlogPost blogPost)
         {
-            var existingPost = await db.BlogPosts.FindAsync(blogPost.Id);
+            var existingPost = await db.BlogPosts.Include(nameof(BlogPost.Tags)).FirstOrDefaultAsync(x => x.Id == blogPost.Id);
 
             if (existingPost != null)
             {
@@ -61,6 +73,19 @@ namespace Bloggie.Web.Repositories
                 existingPost.PublishedDate = blogPost.PublishedDate;
                 existingPost.Author = blogPost.Author;
                 existingPost.Visible = blogPost.Visible;
+
+                if (existingPost.Tags != null && existingPost.Tags.Any()) 
+                {
+                    // delete all tags existing
+                    db.Tags.RemoveRange(existingPost.Tags);
+
+                    // add new tags
+                    blogPost.Tags.ToList().ForEach(x => x.BlogPostId = existingPost.Id);
+
+                    await db.Tags.AddRangeAsync(blogPost.Tags);
+
+                }
+
             }
 
             await db.SaveChangesAsync();
