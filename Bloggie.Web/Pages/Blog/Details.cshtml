@@ -1,5 +1,10 @@
 ﻿@page "/blog/{urlHandle}"
 @model Bloggie.Web.Pages.Blog.DetailsModel
+
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> user
+@inject SignInManager<IdentityUser> signIn
+
 @{
 }
 
@@ -16,6 +21,27 @@
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-secondary">@Model.BlogPost.Author</span>
                     <span class="text-secondary">@Model.BlogPost.PublishedDate.ToShortDateString()</span>
+                </div>
+
+                <div class="mb-3">
+                    <span>
+                        @if (signIn.IsSignedIn(User))
+                        {
+                            @if (Model.Liked)
+                            {
+                                <a style="cursor: pointer">
+                                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <a id="btnLike" style="cursor: pointer">
+                                    <i class="bi bi-hand-thumbs-up"></i>
+                                </a>
+                            }
+                        }
+                        <span id="totalLikes">@Model.Likes</span> Likes
+                    </span>
                 </div>
 
                 <div class="mb-3">
@@ -36,6 +62,88 @@
                     @Html.Raw(Model.BlogPost.Content)
                 </div>
 
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Comments</h5>
+
+                        @if (signIn.IsSignedIn(User))
+                        {
+                            <form method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Comment Description</label>
+                                    <input type="text" class="form-control" asp-for="Description"/>
+                                    <input type="hidden" class="form-control" value="@Model.BlogPostId" asp-for="BlogPostId"/>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="submit" class="btn btn-dark"> Add Comment</button>
+                                </div>
+                            </form>
+                        }
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if(Model.Comments != null && Model.Comments.Any())
+                    {
+                        @foreach(var comment in Model.Comments)
+                        {
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div>
+                                        @comment.Description
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-secondary">@comment.Username</span>
+                                        <span class="text-secondary">@comment.DateAdded</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
             </div>
         </div>
     </div>
+
+@section Scripts{ 
+    <script>
+        const btnLike = document.getElementById('btnLike')
+        const totalLikesElement = document.getElementById('totalLikes')
+
+        async function getTotalLikes() {
+            fetch('/api/blogpostlike/@Model.BlogPost.Id/totalLikes', {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': '*/*'
+                },
+            })
+                .then(data => data.json())
+                .then(res => totalLikesElement.innerHTML = res)
+
+        }
+
+        async function addLikeFromBlog() {
+
+            fetch('/api/blogpostlike/add', {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': '*/*'
+                },
+                body: JSON.stringify({ BlogPostId: '@Model.BlogPost.Id', UserId: '@user.GetUserId(User)'})
+            }).
+                then(() => {
+                    btnLike.innerHTML = ' <i class="bi bi-hand-thumbs-up-fill"></i>';
+                    btnLike.removeEventListener('click', addLikeFromBlog);
+                    getTotalLikes();
+                })
+
+        }
+
+        btnLike.addEventListener('click', addLikeFromBlog)
+
+    </script>
+
+}

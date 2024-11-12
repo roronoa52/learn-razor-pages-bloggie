@@ -54,8 +54,8 @@ namespace Bloggie.Web.Data
 			{
 				Id = superAdminId,
 				UserName = "superadmin@gmail.com",
-				NormalizedUserName = "superadmin@gmail.com",
-				NormalizedEmail = "superadmin@gmail.com",
+				NormalizedUserName = new string("superadmin@gmail.com").ToUpper(),
+				NormalizedEmail = new string("superadmin@gmail.com").ToUpper(),
 				Email = "superadmin@gmail.com"
 			};
 
