@@ -21,7 +21,7 @@ namespace Bloggie.Web.Pages.Admin.Blogs
         }
 
         [BindProperty]
-        public BlogPost BlogPost { get; set; }
+        public EditBlogPostRequest BlogPost { get; set; }
 
 		[BindProperty]
 		public IFormFile FeaturedImage { get; set; }
@@ -31,38 +31,68 @@ namespace Bloggie.Web.Pages.Admin.Blogs
 
 		public async Task OnGet(Guid id)
         {
-            BlogPost = await repository.GetByIdAsync(id);
+            var blogPostDomainModel = await repository.GetByIdAsync(id);
 
-            if (BlogPost != null && BlogPost.Tags != null)
+            if (blogPostDomainModel != null && blogPostDomainModel.Tags != null)
             {
-                Tags = string.Join(",", BlogPost.Tags.Select(x => x.Name));
+                BlogPost = new EditBlogPostRequest
+                {
+                    Id = blogPostDomainModel.Id,
+                    Heading = blogPostDomainModel.Heading,
+                    PageTitle = blogPostDomainModel.PageTitle,
+                    Content = blogPostDomainModel.Content,
+                    ShortDescription = blogPostDomainModel.ShortDescription,
+                    FeturedImageUrl = blogPostDomainModel.FeturedImageUrl,
+                    UrlHandle = blogPostDomainModel.UrlHandle,
+                    PublishedDate = blogPostDomainModel.PublishedDate,
+                    Author = blogPostDomainModel.Author,
+                    Visible = blogPostDomainModel.Visible,
+                };
+					Tags = string.Join(",", blogPostDomainModel.Tags.Select(x => x.Name));
             }
         }
 
         public async Task<IActionResult> OnPostEdit()
         {
 
-            try
+            if (ModelState.IsValid)
             {
-                BlogPost.Tags = new List<Tag>(Tags.Split(',').Select(x => new Tag() { Name = x.Trim() }));
-
-				await repository.UpdateAsync(BlogPost);
-
-				ViewData["MessageDescription"] = new Notification
+				try
 				{
-					Massage = "Post Has been Update",
-					Type = Enum.NotificationType.Success
-				};
+					var blogPostDomainModel = new BlogPost
+					{
 
-			}
-            catch (Exception ex)
-            {
+						Id = BlogPost.Id,
+						Heading = BlogPost.Heading,
+						PageTitle = BlogPost.PageTitle,
+						Content = BlogPost.Content,
+						ShortDescription = BlogPost.ShortDescription,
+						FeturedImageUrl = BlogPost.FeturedImageUrl,
+						UrlHandle = BlogPost.UrlHandle,
+						PublishedDate = BlogPost.PublishedDate,
+						Author = BlogPost.Author,
+						Visible = BlogPost.Visible,
+						Tags = new List<Tag>(Tags.Split(',').Select(x => new Tag() { Name = x.Trim() }))
+					};
 
-				ViewData["MessageDescription"] = new Notification
+					await repository.UpdateAsync(blogPostDomainModel);
+
+					ViewData["MessageDescription"] = new Notification
+					{
+						Massage = "Post Has been Update",
+						Type = Enum.NotificationType.Success
+					};
+
+				}
+				catch (Exception ex)
 				{
-					Massage = ex.Message,
-					Type = Enum.NotificationType.Error
-				};
+
+					ViewData["MessageDescription"] = new Notification
+					{
+						Massage = ex.Message,
+						Type = Enum.NotificationType.Error
+					};
+				}
 			}
 
             return Page();

@@ -21,29 +21,38 @@ namespace Bloggie.Web.Pages
         {
         }
 
-		public async Task<IActionResult> OnPost(string ReturnUrl)
+		public async Task<IActionResult> OnPost(string? ReturnUrl)
 		{
-		
-			var signIn = await signInManager.PasswordSignInAsync(LoginViewModel.Username, LoginViewModel.Password, false, false);
 
-			if (signIn.Succeeded)
+			if (ModelState.IsValid)
 			{
-				if (!string.IsNullOrWhiteSpace(ReturnUrl))
+				var signIn = await signInManager.PasswordSignInAsync(LoginViewModel.Username, LoginViewModel.Password, false, false);
+
+				if (signIn.Succeeded)
 				{
-					return RedirectToPage(ReturnUrl);
+					if (!string.IsNullOrWhiteSpace(ReturnUrl))
+					{
+						return RedirectToPage(ReturnUrl);
+					}
+					return RedirectToPage("Index");
 				}
-				return RedirectToPage("Index");
+				else
+				{
+					ViewData["MessageDescription"] = new Notification()
+					{
+						Type = Enum.NotificationType.Error,
+						Massage = "Username or Password is invalid"
+					};
+
+					return Page();
+				}
 			}
 			else
 			{
-				ViewData["MessageDescription"] = new Notification()
-				{
-					Type = Enum.NotificationType.Error,
-					Massage = "Username or Password is invalid"
-				};
-
 				return Page();
 			}
+		
+			
 		}
 	}
 }

@@ -20,26 +20,31 @@
                     <div class="mb-3">
                         <label for="heading" class="form-label">Id</label>
                         <input type="text" class="form-control" id="id" asp-for="BlogPost.Id" readonly>
+                        <span class="text-danger" asp-validation-for="BlogPost.Id"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="heading" class="form-label">Heading</label>
                         <input type="text" required class="form-control" id="heading" asp-for="BlogPost.Heading">
+                        <span class="text-danger" asp-validation-for="BlogPost.Heading"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="pageTitle" class="form-label">Page Title</label>
                         <input type="text" required class="form-control" id="pageTitle" asp-for="BlogPost.PageTitle">
+                        <span class="text-danger" asp-validation-for="BlogPost.PageTitle"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="content" class="form-label">Content</label>
                         <textarea class="form-control" required id="content" asp-for="BlogPost.Content"></textarea>
+                        <span class="text-danger" asp-validation-for="BlogPost.Content"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="shortDescription" class="form-label">Short Description</label>
                         <input type="text" required class="form-control" id="shortDescription" asp-for="BlogPost.ShortDescription">
+                        <span class="text-danger" asp-validation-for="BlogPost.ShortDescription"></span>
 
                     </div>
 
@@ -66,16 +71,19 @@
                     <div class="mb-3">
                         <label for="urlHandle" class="form-label">Url Handle</label>
                         <input type="text" required class="form-control" id="urlHandle" asp-for="BlogPost.UrlHandle">
+                        <span class="text-danger" asp-validation-for="BlogPost.UrlHandle"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="publishedDate" class="form-label">Published Date</label>
                         <input type="date" required class="form-control" id="publishedDate" asp-for="BlogPost.PublishedDate">
+                        <span class="text-danger" asp-validation-for="BlogPost.PublishedDate"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="author" class="form-label">Author</label>
                         <input type="text" required class="form-control" id="author" asp-for="BlogPost.Author">
+                        <span class="text-danger" asp-validation-for="BlogPost.Author"></span>
                     </div>
 
                     <div class="mb-3">

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
 namespace Bloggie.Web.Pages.Admin.Blogs
@@ -27,6 +28,7 @@ namespace Bloggie.Web.Pages.Admin.Blogs
         public IFormFile FeaturedImage { get; set; }
 
         [BindProperty]
+        [Required]
         public string Tags { get; set; }
 
         public void OnGet()
@@ -34,33 +36,49 @@ namespace Bloggie.Web.Pages.Admin.Blogs
         }
         public async Task<IActionResult> OnPost()
         {
-            BlogPost blogPost = new BlogPost()
+            ValidateAddBlog();
+
+			if (ModelState.IsValid)
             {
-                Heading = AddBlogPostRequest.Heading,
-                PageTitle = AddBlogPostRequest.PageTitle,
-                Content = AddBlogPostRequest.Content,
-                ShortDescription = AddBlogPostRequest.ShortDescription,
-                FeturedImageUrl = AddBlogPostRequest.FeturedImageUrl,
-                UrlHandle = AddBlogPostRequest.UrlHandle,
-                PublishedDate = AddBlogPostRequest.PublishedDate,
-                Author = AddBlogPostRequest.Author,
-                Visible = AddBlogPostRequest.Visible,
-                Tags = new List<Tag>( Tags.Split(",").Select(t => new Tag { Name = t.Trim()}) ),
-            };
+				BlogPost blogPost = new BlogPost()
+				{
+					Heading = AddBlogPostRequest.Heading,
+					PageTitle = AddBlogPostRequest.PageTitle,
+					Content = AddBlogPostRequest.Content,
+					ShortDescription = AddBlogPostRequest.ShortDescription,
+					FeturedImageUrl = AddBlogPostRequest.FeturedImageUrl,
+					UrlHandle = AddBlogPostRequest.UrlHandle,
+					PublishedDate = AddBlogPostRequest.PublishedDate,
+					Author = AddBlogPostRequest.Author,
+					Visible = AddBlogPostRequest.Visible,
+					Tags = new List<Tag>(Tags.Split(",").Select(t => new Tag { Name = t.Trim() })),
+				};
 
-            await repository.CreateAsync(blogPost);
+				await repository.CreateAsync(blogPost);
 
 
-            var notification = new Notification
+				var notification = new Notification
+				{
+					Massage = "The new blog post has post",
+					Type = Enum.NotificationType.Success
+				};
+
+				TempData["MessageDescription"] = JsonSerializer.Serialize(notification);
+
+
+				return RedirectToPage("/admin/blogs/list");
+			}
+
+            return Page();
+        }
+    
+        private void ValidateAddBlog()
+        {
+            if(AddBlogPostRequest.PublishedDate.Date < DateTime.Now.Date)
             {
-                Massage = "The new blog post has post",
-                Type = Enum.NotificationType.Success
-            };
-
-			TempData["MessageDescription"] = JsonSerializer.Serialize(notification);
-
-
-			return RedirectToPage("/admin/blogs/list");
+                ModelState.AddModelError("AddBlogPostRequest.PublishedDate",
+                    $"PublishedDate can only be today date or future date");
+            }
         }
     }
 }

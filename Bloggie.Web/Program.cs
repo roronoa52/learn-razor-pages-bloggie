@@ -20,6 +20,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequiredLength = 1;
         options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
     }
 ).AddEntityFrameworkStores<AuthBloggerDbContext>();
 
@@ -34,6 +35,7 @@ builder.Services.AddScoped<IImageRepository, ImageRepositoryCloudinary>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IBLogPostLikeRepository, BlogPostLikeRepository>();
 builder.Services.AddScoped<IBlogPostCommentRepository, BlogPostCommentRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>(); 
 
 var app = builder.Build();
 

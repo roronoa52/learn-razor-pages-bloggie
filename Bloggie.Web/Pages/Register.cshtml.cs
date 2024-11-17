@@ -26,37 +26,45 @@ namespace Bloggie.Web.Pages
 
         public async Task<IActionResult> OnPost()
         {
-			var user = new IdentityUser
+			if (ModelState.IsValid)
 			{
-				UserName = RegisterViewModel.Username,
-				Email = RegisterViewModel.Email,
-			};
-
-			var identityResult = await userManager.CreateAsync(user, RegisterViewModel.Password);
-
-			if (identityResult.Succeeded)
-			{
-				var addRolesResult = await userManager.AddToRoleAsync(user, "User");
-
-				if (addRolesResult.Succeeded)
+				var user = new IdentityUser
 				{
-					ViewData["MessageDescription"] = new Notification
+					UserName = RegisterViewModel.Username,
+					Email = RegisterViewModel.Email,
+				};
+
+				var identityResult = await userManager.CreateAsync(user, RegisterViewModel.Password);
+
+				if (identityResult.Succeeded)
+				{
+					var addRolesResult = await userManager.AddToRoleAsync(user, "User");
+
+					if (addRolesResult.Succeeded)
 					{
-						Type = Enum.NotificationType.Success,
-						Massage = "User Registered Successfully"
-					};
+						ViewData["MessageDescription"] = new Notification
+						{
+							Type = Enum.NotificationType.Success,
+							Massage = "User Registered Successfully"
+						};
 
-					return Page();
+						return Page();
+					}
 				}
+
+				ViewData["MessageDescription"] = new Notification
+				{
+					Type = Enum.NotificationType.Error,
+					Massage = "Something Went Wrong"
+				};
+
+				return Page();
 			}
-
-			ViewData["MessageDescription"] = new Notification
+			else
 			{
-				Type = Enum.NotificationType.Error,
-				Massage = "Something Went Wrong"
-			};
-
-			return Page();
+				return Page();
+			}
+			
 		}
     }
 }

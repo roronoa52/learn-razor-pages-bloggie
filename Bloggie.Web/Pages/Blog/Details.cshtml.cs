@@ -4,6 +4,7 @@ using Bloggie.Web.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel.DataAnnotations;
 
 namespace Bloggie.Web.Pages.Blog
 {
@@ -22,6 +23,7 @@ namespace Bloggie.Web.Pages.Blog
 		public bool Liked { get; set; }
 
 		[BindProperty]
+		[Required]
 		public string Description { get; set; }
 
 		[BindProperty]
@@ -38,45 +40,35 @@ namespace Bloggie.Web.Pages.Blog
 
         public async Task<IActionResult> OnGet(string urlHandle)
         {
-			BlogPost = await blogPostRepository.GetPostAsync(urlHandle);
 
-			if(BlogPost != null)
-			{
-				BlogPostId = BlogPost.Id;
-
-				if (signInManager.IsSignedIn(User))
-				{
-					var likes = await blogPostLikeRepository.GetLikesForBlog(BlogPost.Id);
-
-					var userId = userManager.GetUserId(User);
-
-					Liked = likes.Any(x => x.UserId == Guid.Parse(userId));
-
-					await GetComment();
-
-				}
-				Likes = await blogPostLikeRepository.GetTotalLikesForBlog(BlogPost.Id);
-			}
-
+			await GetBlog(urlHandle);
 
 			return Page();
         }
 
 		public async Task<IActionResult> OnPost(string urlHandle)
 		{
-			var userId = userManager.GetUserId(User);
-
-			var comment = new BlogPostComment()
+			if (ModelState.IsValid)
 			{
-				Description = Description,
-				BlogPostId = BlogPostId,
-				UserId = Guid.Parse(userId),
-				DateAdded = DateTime.Now
-			};	
+				var userId = userManager.GetUserId(User);
 
-			await blogPostCommentRepository.AddAsync(comment);
+				var comment = new BlogPostComment()
+				{
+					Description = Description,
+					BlogPostId = BlogPostId,
+					UserId = Guid.Parse(userId),
+					DateAdded = DateTime.Now
+				};
 
-			return RedirectToPage("/blog/details", new { urlHandle = urlHandle });
+				await blogPostCommentRepository.AddAsync(comment);
+
+				return RedirectToPage("/blog/details", new { urlHandle = urlHandle });
+			}
+
+			await GetBlog(urlHandle); 
+
+			return Page();
+
 		}
 
 		public async Task GetComment()
@@ -96,5 +88,29 @@ namespace Bloggie.Web.Pages.Blog
 
 			Comments = blogCommentsViewModel;
         }
+
+		private async Task GetBlog(string urlHandle)
+		{
+
+			BlogPost = await blogPostRepository.GetPostAsync(urlHandle);
+
+			if (BlogPost != null)
+			{
+				BlogPostId = BlogPost.Id;
+
+				if (signInManager.IsSignedIn(User))
+				{
+					var likes = await blogPostLikeRepository.GetLikesForBlog(BlogPost.Id);
+
+					var userId = userManager.GetUserId(User);
+
+					Liked = likes.Any(x => x.UserId == Guid.Parse(userId));
+
+					await GetComment();
+
+				}
+				Likes = await blogPostLikeRepository.GetTotalLikesForBlog(BlogPost.Id);
+			}
+		}
     }
 }
